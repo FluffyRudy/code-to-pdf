@@ -15,9 +15,10 @@ def save_pdf(content: str, save_to: str):
 
 def main():
     text = easygui.textbox(msg="Insert HTML code", callback=handle_text_accept)
-    file_open = easygui.filesavebox(msg="enter filename", title="filemanager", default="./")
-    pdf_converter_thread = threading.Thread(target=save_pdf, args=(text, file_open))
-    pdf_converter_thread.start()
+    if text:
+        file_open = easygui.filesavebox(msg="enter filename", title="filemanager", default="./")
+        pdf_converter_thread = threading.Thread(target=save_pdf, args=(text, file_open))
+        pdf_converter_thread.start()
 
 if __name__ == "__main__":
     main()
