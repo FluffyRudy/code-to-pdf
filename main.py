@@ -83,4 +83,5 @@ def main():
 
 
 if __name__ == "__main__":
+    """user --cli=True path=/path/<filename>.{py,c,cpp,java,sh,js}"""
     main()
