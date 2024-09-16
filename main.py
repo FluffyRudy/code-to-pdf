@@ -28,7 +28,6 @@ def syntax_highlight(code: str, language: str) -> str:
     lexer = get_lexer_by_name(language)
     formatter = CustomHtmlFormatter(full=True, linenos=False, font_size="10px")
     result = highlight(code, lexer, formatter)
-    print(result)
     return result
 
 
