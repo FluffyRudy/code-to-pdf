@@ -1,13 +1,17 @@
-import easygui
-import threading
+import os
+import pathlib
 import argparse
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
+import easygui
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 from hexgen import get_random_hex
-import os, pathlib
+from formatter import CustomHtmlFormatter
 
 
 extension_mapping = {
@@ -22,8 +26,10 @@ extension_mapping = {
 
 def syntax_highlight(code: str, language: str) -> str:
     lexer = get_lexer_by_name(language)
-    formatter = HtmlFormatter(full=True, linenos=True)
-    return highlight(code, lexer, formatter)
+    formatter = CustomHtmlFormatter(full=True, linenos=False, font_size="10px")
+    result = highlight(code, lexer, formatter)
+    print(result)
+    return result
 
 
 def generate_pdf(code: str, language: str, file_path: str = None):
@@ -72,7 +78,6 @@ def gui_mode():
         directory = easygui.diropenbox(
             msg="Choose directory to perform operation",
             title="Choose Directory",
-            # default=(pathlib.Path(__file__).resolve().parent),
         )
 
         if directory is None:
@@ -84,18 +89,16 @@ def gui_mode():
             if file.suffix[1:] in extension_mapping.keys():
                 filtered_files.append(file)
 
-        filelist = easygui.msgbox(
-            msg="\n".join([str(file) for file in filtered_files]), ok_button="Proceed"
+        easygui.msgbox(
+            msg="\n".join([str(file) for file in filtered_files]),
+            ok_button="Proceed",
         )
 
-        threads = []
-        for file in filtered_files:
-            thread_instance = threading.Thread(target=generate_from_file, args=(file,))
-            thread_instance.start()
-            threads.append(thread_instance)
+        # Use ThreadPoolExecutor instead of manually handling threads
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            for file in filtered_files:
+                executor.submit(generate_from_file, file)
 
-        for thread in threads:
-            thread.join()
         return
 
     languages = ["python", "javascript", "c", "cpp", "java", "bash"]
