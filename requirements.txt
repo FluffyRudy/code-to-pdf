@@ -1,9 +1,8 @@
 Brotli==1.1.0
-cffi==1.17.0
+cffi==1.17.1
 cssselect2==0.7.0
 easygui==0.98.3
 fonttools==4.53.1
-fpdf==1.7.2
 html5lib==1.1
 pillow==10.4.0
 pycparser==2.22
