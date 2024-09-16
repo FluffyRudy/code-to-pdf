@@ -1,12 +1,23 @@
 import easygui
 import threading
 import argparse
+import logging
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from weasyprint import HTML
 from hexgen import get_random_hex
-import os
+import os, pathlib
+
+
+extension_mapping = {
+    "py": "python",
+    "js": "javascript",
+    "c": "c",
+    "cpp": "cpp",
+    "java": "java",
+    "sh": "bash",
+}
 
 
 def syntax_highlight(code: str, language: str) -> str:
@@ -29,14 +40,6 @@ def cli_mode(filepath: str):
         return
 
     _, file_extension = os.path.splitext(filepath)
-    extension_mapping = {
-        "py": "python",
-        "js": "javascript",
-        "c": "c",
-        "cpp": "cpp",
-        "java": "java",
-        "sh": "bash",
-    }
     language = extension_mapping.get(file_extension[1:], None)
 
     if language is None:
@@ -50,7 +53,51 @@ def cli_mode(filepath: str):
     generate_pdf(code, language, pdf_path)
 
 
+def generate_from_file(path: pathlib.Path):
+    with open(path) as f:
+        code = f.read()
+        pdf_path = f"./{path.stem}.pdf"
+        _, file_extension = os.path.splitext(path)
+        language = extension_mapping.get(file_extension[1:], None)
+        if language is None:
+            logging.warning("Language doesnt exist in mapping")
+            return
+        generate_pdf(code, language, file_path=pdf_path)
+
+
 def gui_mode():
+    modes = ("copypaste", "bulkfiles")
+    mode = easygui.choicebox("Select mode: ", choices=modes)
+    if mode == "bulkfiles":
+        directory = easygui.diropenbox(
+            msg="Choose directory to perform operation",
+            title="Choose Directory",
+            # default=(pathlib.Path(__file__).resolve().parent),
+        )
+
+        if directory is None:
+            easygui.msgbox("No directory selected, exiting.")
+            return
+
+        filtered_files = []
+        for file in pathlib.Path(directory).iterdir():
+            if file.suffix[1:] in extension_mapping.keys():
+                filtered_files.append(file)
+
+        filelist = easygui.msgbox(
+            msg="\n".join([str(file) for file in filtered_files]), ok_button="Proceed"
+        )
+
+        threads = []
+        for file in filtered_files:
+            thread_instance = threading.Thread(target=generate_from_file, args=(file,))
+            thread_instance.start()
+            threads.append(thread_instance)
+
+        for thread in threads:
+            thread.join()
+        return
+
     languages = ["python", "javascript", "c", "cpp", "java", "bash"]
     language = easygui.choicebox("Select programming language:", choices=languages)
     if not language:
