@@ -53,7 +53,7 @@ def generate_pdf(
       <style>{style}</style>
     </head>
     <body>
-      {title and f"<h1 style='text-align:center;'>{title}</h1>"}
+      {title and f"<h1 style='text-align:center;'>Experiment NO.{title}</h1>"}
       {aim and f"<h2>Aim:</h2><p style='font-family:monospace;'>{aim}</p>"}
       {theory and f"<h2>Theory:</h2><p style='font-family:monospace;'>{theory}</p>"}
       {algorithm and f"<h2>Algorithm:</h2><p style='font-family:monospace;'>{algorithm}</p><h2>Code</h2>"}
@@ -86,12 +86,8 @@ def cli_mode(filepath: str):
         print(f"Error: The file {filepath} does not exist.")
         return
 
-    _, file_extension = os.path.splitext(filepath)
-    language = extension_mapping.get(file_extension[1:], None)
-
-    if language is None:
-        print(f"Error: The language '{file_extension[1:]}' is not supported.")
-        return
+    # Set language to C for temporary testing
+    language = "c"
 
     with open(filepath, "r") as f:
         code = f.read()
@@ -104,17 +100,14 @@ def generate_from_file(path: pathlib.Path):
     with open(path) as f:
         code = f.read()
         pdf_path = f"./{path.stem}.pdf"
-        _, file_extension = os.path.splitext(path)
-        language = extension_mapping.get(file_extension[1:], None)
-        if language is None:
-            logging.warning("Language doesnt exist in mapping")
-            return
+        # Set language to C for temporary testing
+        language = "c"
         generate_pdf(code, language, file_path=pdf_path)
 
 
 def gui_mode():
-    modes = ("copypaste", "bulkfiles")
-    mode = easygui.choicebox("Select mode: ", choices=modes)
+    modes = "copypaste"
+    mode = modes
 
     if mode == "bulkfiles":
         directory = easygui.diropenbox(
@@ -144,15 +137,12 @@ def gui_mode():
         return
 
     elif mode == "copypaste":
-        languages = ["python", "javascript", "c", "cpp", "java", "bash"]
-        language = easygui.choicebox("Select programming language:", choices=languages)
-        if not language:
-            easygui.msgbox("No language selected, exiting.")
-            return
+        # Set language to C for temporary testing
+        language = "c"
 
         code = easygui.textbox(f"Insert your {language} code here:")
         if not code:
-            easygui.msgbox("No code provided, exiting.")
+            # easygui.msgbox("No code provided, exiting.")
             return
 
         title = easygui.enterbox("Enter the title (optional):")
