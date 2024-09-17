@@ -26,7 +26,7 @@ extension_mapping = {
 
 def syntax_highlight(code: str, language: str) -> str:
     lexer = get_lexer_by_name(language)
-    formatter = CustomHtmlFormatter(full=True, linenos=False, font_size="10px")
+    formatter = CustomHtmlFormatter(full=True, linenos=False, font_size="12px")
     result = highlight(code, lexer, formatter)
     return result
 
@@ -93,7 +93,6 @@ def gui_mode():
             ok_button="Proceed",
         )
 
-        # Use ThreadPoolExecutor instead of manually handling threads
         with ThreadPoolExecutor(max_workers=4) as executor:
             for file in filtered_files:
                 executor.submit(generate_from_file, file)
