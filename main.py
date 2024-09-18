@@ -44,21 +44,20 @@ def generate_pdf(
     is_bulk: bool = False,
 ):
     highlighted_code, style = syntax_highlight(code, language)
-    # Use syntax highlighting
     full_html_content = f"""
     <!DOCTYPE html>
     <html>
     <head>
-      <meta charset="utf-8">
-      <style>{style}</style>
+    <meta charset="utf-8">
+    <style>{style}</style>
     </head>
     <body>
-      {title and f"<h1 style='text-align:center;'>Experiment NO.{title}</h1>"}
-      {aim and f"<h2>Aim:</h2><p style='font-family:monospace;'>{aim}</p>"}
-      {theory and f"<h2>Theory:</h2><p style='font-family:monospace;'>{theory}</p>"}
-      {algorithm and f"<h2>Algorithm:</h2><p style='font-family:monospace;'>{algorithm}</p><h2>Code</h2>"}
-      {not algorithm and "<h2>Code</h2>"}
-      <pre style='font-family:monospace;'>{highlighted_code}</pre>
+    {title and f"<h1 style='text-align:center;'>Experiment NO.{title}</h1>"}
+    {aim and f"<h2>Aim:</h2><p style='font-family:monospace;'>{aim}</p>"}
+    {theory and f"<h2>Theory:</h2><p style='font-family:monospace;'>{theory}</p>"}
+    {algorithm and f"<h2>Algorithm:</h2><p style='font-family:monospace;'>{algorithm}</p>"}
+    <h2>Code</h2>
+    <pre style='font-family:monospace;'>{highlighted_code}</pre>
     </body>
     </html>
     """
