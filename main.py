@@ -3,6 +3,8 @@ import pathlib
 import argparse
 import logging
 import threading
+import subprocess
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 import easygui
@@ -13,7 +15,6 @@ from weasyprint import HTML, CSS
 from hexgen import get_random_hex
 from formatter import CustomHtmlFormatter
 from formatter import CustomHTML
-
 
 extension_mapping = {
     "py": "python",
@@ -33,6 +34,31 @@ def syntax_highlight(code: str, language: str) -> str:
     return result, style
 
 
+def run_code_and_capture_output(code: str, language: str) -> str:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{language}") as temp_file:
+        temp_file.write(code.encode("utf-8"))
+        temp_file.flush()
+
+        try:
+            if language == "python":
+                result = subprocess.run(
+                    ["python3", temp_file.name], capture_output=True, text=True
+                )
+            elif language == "bash":
+                result = subprocess.run(
+                    ["bash", temp_file.name], capture_output=True, text=True
+                )
+            # Handle other languages similarly if needed
+            else:
+                return "Language execution not supported."
+
+            output = result.stdout + result.stderr
+        except Exception as e:
+            output = str(e)
+
+    return output
+
+
 def generate_pdf(
     code: str,
     language: str,
@@ -40,10 +66,12 @@ def generate_pdf(
     title: str = "",
     aim: str = "",
     theory: str = "",
-    algorithm: str = "",
     is_bulk: bool = False,
 ):
     highlighted_code, style = syntax_highlight(code, language)
+    output = run_code_and_capture_output(code, language)
+    highlighted_output, _ = syntax_highlight(output, "text")
+
     full_html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -52,12 +80,11 @@ def generate_pdf(
     <style>{style}</style>
     </head>
     <body>
-    {title and f"<h1 style='text-align:center;'>Experiment NO.{title}</h1>"}
-    {aim and f"<h2>Aim:</h2><p style='font-family:monospace;'>{aim}</p>"}
-    {theory and f"<h2>Theory:</h2><p style='font-family:monospace;'>{theory}</p>"}
-    {algorithm and f"<h2>Algorithm:</h2><p style='font-family:monospace;'>{algorithm}</p>"}
-    <h2>Code</h2>
+    {aim and f"<h2 style='display: inline-block;'>{title}:&nbsp;</h2><p style='display: inline-block;'><strong>{aim}</strong></p>"}
     <pre style='font-family:monospace;'>{highlighted_code}</pre>
+    <hr/>
+    <h3>Output:</h3>
+    <pre style='font-family:monospace;'>{highlighted_output}</pre>
     </body>
     </html>
     """
@@ -73,7 +100,6 @@ def generate_pdf(
             title=title,
             aim=aim,
             theory=theory,
-            algorithm=algorithm,
         )
         html_instance.write_pdf(file_path)
 
@@ -85,8 +111,7 @@ def cli_mode(filepath: str):
         print(f"Error: The file {filepath} does not exist.")
         return
 
-    # Set language to C for temporary testing
-    language = "c"
+    language = "python"
 
     with open(filepath, "r") as f:
         code = f.read()
@@ -99,7 +124,6 @@ def generate_from_file(path: pathlib.Path):
     with open(path) as f:
         code = f.read()
         pdf_path = f"./{path.stem}.pdf"
-        # Set language to C for temporary testing
         language = "c"
         generate_pdf(code, language, file_path=pdf_path)
 
@@ -136,24 +160,19 @@ def gui_mode():
         return
 
     elif mode == "copypaste":
-        # Set language to C for temporary testing
-        language = "c"
+        language = "python"
 
         code = easygui.textbox(f"Insert your {language} code here:")
         if not code:
-            # easygui.msgbox("No code provided, exiting.")
             return
 
         title = easygui.enterbox("Enter the title (optional):")
         aim = easygui.textbox("Insert the aim of this code (2-3 lines):")
-        theory = easygui.textbox("Insert the theory behind the code (6-10 lines):")
-        algorithm = easygui.textbox(
-            "Insert the algorithm or steps (any number of lines):"
-        )
+        theory = ""
 
         threading.Thread(
             target=generate_pdf,
-            args=(code, language, None, title, aim, theory, algorithm, False),
+            args=(code, language, None, title, aim, theory, False),
         ).start()
 
 
@@ -175,5 +194,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """user --cli=True path=/path/<filename>.{py,c,cpp,java,sh,js}"""
     main()
