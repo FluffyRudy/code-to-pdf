@@ -28,7 +28,9 @@ extension_mapping = {
 
 def syntax_highlight(code: str, language: str) -> str:
     lexer = get_lexer_by_name(language)
-    formatter = CustomHtmlFormatter(full=False, linenos=False, font_size="12px")
+    formatter = CustomHtmlFormatter(
+        full=False, linenos=False, font_size="12px", style="monokai"
+    )
     result = highlight(code, lexer, formatter)
     style = formatter.get_style_defs()
     return result, style
@@ -48,7 +50,6 @@ def run_code_and_capture_output(code: str, language: str) -> str:
                 result = subprocess.run(
                     ["bash", temp_file.name], capture_output=True, text=True
                 )
-            # Handle other languages similarly if needed
             else:
                 return "Language execution not supported."
 
@@ -70,27 +71,78 @@ def generate_pdf(
 ):
     highlighted_code, style = syntax_highlight(code, language)
     output = run_code_and_capture_output(code, language)
-    highlighted_output, _ = syntax_highlight(output, "text")
+
+    terminal_html_template = f"""
+    <div class="terminal">
+        <span style="color: green;">rudy@rudy</span>: 
+        <span style="color: white;">~/Documents/college/ai/lab$</span> 
+        <span style="color: white;">python3 {title}.py</span>
+        <pre style="font-family: 'Fira Code', monospace; background-color: black; color: white; padding: 0; margin: 0; white-space: pre-wrap;">{output}</pre>
+    </div>
+    """
 
     full_html_content = f"""
     <!DOCTYPE html>
     <html>
     <head>
     <meta charset="utf-8">
-    <style>{style}</style>
+    <style>
+    {style}
+
+    body {{
+        font-family: 'Fira Code', monospace;
+        color: white;
+        padding: 20px;
+    }}
+
+    pre {{
+        font-family: 'Fira Code', monospace;
+        background-color: #272822; 
+        color: #f8f8f2;            
+        padding: 10px;
+        border-radius: 5px;
+        white-space: pre-wrap !important;     
+        word-wrap: break-word !important;     
+    }}
+
+    h3 {{
+        color: white;
+    }}
+
+    hr {{
+        border: 1px solid #f8f8f2;
+    }}
+
+    .terminal {{
+        background-color: black;
+        padding: 10px;
+        color: white;
+        font-family: 'Fira Code', monospace;
+    }}
+
+    .terminal .prompt {{
+        color: green;
+    }}
+
+    .terminal .path {{
+        color: white;
+    }}
+    </style>
     </head>
     <body>
     {aim and f"<h2 style='display: inline-block;'>{title}:&nbsp;</h2><p style='display: inline-block;'><strong>{aim}</strong></p>"}
-    <pre style='font-family:monospace;'>{highlighted_code}</pre>
+    
+    <pre>{highlighted_code}</pre>
+    
     <hr/>
     <h3>Output:</h3>
-    <pre style='font-family:monospace;'>{highlighted_output}</pre>
+    {terminal_html_template}
     </body>
     </html>
     """
 
     if file_path is None:
-        file_path = f"code_{get_random_hex(8)}.pdf"
+        file_path = f"lab{title}.pdf"
 
     if is_bulk:
         HTML(string=full_html_content).write_pdf(file_path)
@@ -106,18 +158,18 @@ def generate_pdf(
     print(f"PDF generated: {file_path}")
 
 
-def cli_mode(filepath: str):
-    if not os.path.exists(filepath):
-        print(f"Error: The file {filepath} does not exist.")
+def cli_mode(code_filepath: str, title: str, aim: str):
+    if not os.path.exists(code_filepath):
+        print(f"Error: The file {code_filepath} does not exist.")
         return
 
     language = "python"
 
-    with open(filepath, "r") as f:
+    with open(code_filepath, "r") as f:
         code = f.read()
 
-    pdf_path = f"{os.path.splitext(filepath)[0]}_{get_random_hex(8)}.pdf"
-    generate_pdf(code, language, pdf_path)
+    pdf_path = f"lab{title}.pdf"
+    generate_pdf(code, language, pdf_path, title, aim)
 
 
 def generate_from_file(path: pathlib.Path):
@@ -180,15 +232,17 @@ def main():
     parser = argparse.ArgumentParser(
         description="Code to PDF converter with CLI and GUI modes."
     )
+    parser.add_argument("--cli", action="store_true", help="Set to enable CLI mode.")
     parser.add_argument(
-        "--cli", type=bool, default=False, help="Set to True for CLI mode."
+        "--code", type=str, required=True, help="File path to the Python code."
     )
-    parser.add_argument("--path", type=str, help="File path for CLI mode input.")
+    parser.add_argument("--title", type=str, required=True, help="Title for the code.")
+    parser.add_argument("--aim", type=str, required=True, help="Aim of the code.")
 
     args = parser.parse_args()
 
-    if args.cli and args.path:
-        cli_mode(args.path)
+    if args.cli and args.code and args.title and args.aim:
+        cli_mode(args.code, args.title, args.aim)
     else:
         gui_mode()
 
