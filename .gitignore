@@ -3,3 +3,4 @@ __pycache__/
 *.pdf
 linux/*
 linux/*
+scratch.py
