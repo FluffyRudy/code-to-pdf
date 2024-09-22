@@ -89,24 +89,29 @@ def generate_pdf(
     <style>
     {style}
 
+    * {{
+        margin: 0;
+        padding: 0;
+    }}
+
     body {{
         font-family: 'Fira Code', monospace;
         color: white;
-        padding: 20px;
+        padding: 10px;
+        width: 100vw;
     }}
 
     pre {{
         font-family: 'Fira Code', monospace;
         background-color: #272822; 
         color: #f8f8f2;            
-        padding: 10px;
         border-radius: 5px;
         white-space: pre-wrap !important;     
         word-wrap: break-word !important;     
     }}
 
-    h3 {{
-        color: white;
+    h1, h2, h3, .p {{
+        color: black;
     }}
 
     hr {{
@@ -127,10 +132,15 @@ def generate_pdf(
     .terminal .path {{
         color: white;
     }}
+
+    .ib {{
+        display: inline-block;
+    }}
     </style>
     </head>
     <body>
-    {aim and f"<h2 style='display: inline-block;'>{title}:&nbsp;</h2><p style='display: inline-block;'><strong>{aim}</strong></p>"}
+    <h2 class="ib">{title}:</h2>
+    <p class="p ib"><strong>{aim}</strong></p>
     
     <pre>{highlighted_code}</pre>
     
@@ -156,20 +166,6 @@ def generate_pdf(
         html_instance.write_pdf(file_path)
 
     print(f"PDF generated: {file_path}")
-
-
-def cli_mode(code_filepath: str, title: str, aim: str):
-    if not os.path.exists(code_filepath):
-        print(f"Error: The file {code_filepath} does not exist.")
-        return
-
-    language = "python"
-
-    with open(code_filepath, "r") as f:
-        code = f.read()
-
-    pdf_path = f"lab{title}.pdf"
-    generate_pdf(code, language, pdf_path, title, aim)
 
 
 def generate_from_file(path: pathlib.Path):
@@ -228,21 +224,34 @@ def gui_mode():
         ).start()
 
 
+def cli_mode(code_filepath: str):
+    if not os.path.exists(code_filepath):
+        print(f"Error: The file {code_filepath} does not exist.")
+        return
+
+    with open(code_filepath, "r") as f:
+        lines = f.readlines()
+        title = lines[0].strip().split(": ", 1)[1]
+        aim = lines[1].strip().split(": ", 1)[1]
+        code = "".join(lines[2:])
+
+    language = "python"
+    generate_pdf(code=code, language=language, title=title, aim=aim)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Code to PDF converter with CLI and GUI modes."
     )
     parser.add_argument("--cli", action="store_true", help="Set to enable CLI mode.")
     parser.add_argument(
-        "--code", type=str, required=True, help="File path to the Python code."
+        "--code", type=str, required=True, help="File path to the code."
     )
-    parser.add_argument("--title", type=str, required=True, help="Title for the code.")
-    parser.add_argument("--aim", type=str, required=True, help="Aim of the code.")
 
     args = parser.parse_args()
 
-    if args.cli and args.code and args.title and args.aim:
-        cli_mode(args.code, args.title, args.aim)
+    if args.cli and args.code:
+        cli_mode(args.code)
     else:
         gui_mode()
 
