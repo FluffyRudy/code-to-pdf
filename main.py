@@ -97,14 +97,14 @@ def generate_pdf(
     body {{
         font-family: 'Fira Code', monospace;
         color: white;
-        padding: 10px;
-        width: 100vw;
+        width: 100%;
     }}
 
     pre {{
         font-family: 'Fira Code', monospace;
         background-color: #272822; 
-        color: #f8f8f2;            
+        color: #f8f8f2;      
+        padding: 10px;      
         border-radius: 5px;
         white-space: pre-wrap !important;     
         word-wrap: break-word !important;     
@@ -120,7 +120,7 @@ def generate_pdf(
 
     .terminal {{
         background-color: black;
-        padding: 10px;
+        padding: 5px;
         color: white;
         font-family: 'Fira Code', monospace;
     }}
