@@ -170,62 +170,6 @@ def generate_pdf(
     print(f"PDF generated: {file_path}")
 
 
-def generate_from_file(path: pathlib.Path):
-    with open(path) as f:
-        code = f.read()
-        pdf_path = f"./{path.stem}.pdf"
-        language = "c"
-        generate_pdf(code, language, file_path=pdf_path)
-
-
-def gui_mode():
-    modes = "copypaste"
-    mode = modes
-
-    if mode == "bulkfiles":
-        directory = easygui.diropenbox(
-            msg="Choose directory to perform operation",
-            title="Choose Directory",
-        )
-
-        if directory is None:
-            easygui.msgbox("No directory selected, exiting.")
-            return
-
-        filtered_files = [
-            file
-            for file in pathlib.Path(directory).iterdir()
-            if file.suffix[1:] in extension_mapping.keys()
-        ]
-
-        easygui.msgbox(
-            msg="\n".join([str(file) for file in filtered_files]),
-            ok_button="Proceed",
-        )
-
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            for file in filtered_files:
-                executor.submit(generate_from_file, file)
-
-        return
-
-    elif mode == "copypaste":
-        language = "python"
-
-        code = easygui.textbox(f"Insert your {language} code here:")
-        if not code:
-            return
-
-        title = easygui.enterbox("Enter the title (optional):")
-        aim = easygui.textbox("Insert the aim of this code (2-3 lines):")
-        theory = ""
-
-        threading.Thread(
-            target=generate_pdf,
-            args=(code, language, None, title, aim, theory, False),
-        ).start()
-
-
 def cli_mode(code_filepath: str):
     if not os.path.exists(code_filepath):
         print(f"Error: The file {code_filepath} does not exist.")
