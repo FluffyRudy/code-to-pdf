@@ -78,6 +78,8 @@ def generate_pdf(
         <span style="color: white;">~/Documents/college/ai/lab$</span> 
         <span style="color: white;">python3 {title}.py</span>
         <pre style="font-family: 'Fira Code', monospace; background-color: black; color: white; padding: 0; margin: 0; white-space: pre-wrap;">{output}</pre>
+        <div style="height: 20px;"></div>
+        <div style="height: 20px;"></div>
     </div>
     """
 
@@ -110,7 +112,7 @@ def generate_pdf(
         word-wrap: break-word !important;     
     }}
 
-    h1, h2, h3, .p {{
+    h1, h2, h3, .pr {{
         color: black;
     }}
 
@@ -140,7 +142,7 @@ def generate_pdf(
     </head>
     <body>
     <h2 class="ib">{title}:</h2>
-    <p class="p ib"><strong>{aim}</strong></p>
+    <p class="pr ib"><strong>{aim}</strong></p>
     
     <pre>{highlighted_code}</pre>
     
