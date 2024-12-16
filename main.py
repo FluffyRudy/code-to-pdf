@@ -25,11 +25,23 @@ extension_mapping = {
 }
 
 
+# def syntax_highlight(code: str, language: str) -> str:
+#     lexer = get_lexer_by_name(language)
+#     formatter = CustomHtmlFormatter(full=False, linenos=False, font_size="12px")
+#     result = highlight(code, lexer, formatter)
+#     style = formatter.get_style_defs()
+#     return result, style
 def syntax_highlight(code: str, language: str) -> str:
-    lexer = get_lexer_by_name(language)
-    formatter = CustomHtmlFormatter(full=False, linenos=False, font_size="12px")
-    result = highlight(code, lexer, formatter)
-    style = formatter.get_style_defs()
+    # Return the plain code without syntax highlighting
+    style = """
+    pre {
+        font-family: monospace;
+        color: black;
+        background-color: white;
+        font-size: 12px;
+    }
+    """
+    result = f"<pre>{code}</pre>"
     return result, style
 
 
@@ -64,6 +76,8 @@ def generate_pdf(
 
     if file_path is None:
         file_path = f"code_{get_random_hex(8)}.pdf"
+    else:
+        file_path = pathlib.Path(file_path).name
 
     if is_bulk:
         HTML(string=full_html_content).write_pdf(file_path)
@@ -75,7 +89,7 @@ def generate_pdf(
             theory=theory,
             algorithm=algorithm,
         )
-        html_instance.write_pdf(file_path)
+        html_instance.write_pdf(f"{file_path}.pdf")
 
     print(f"PDF generated: {file_path}")
 
